@@ -5,85 +5,30 @@ class TitleScene extends Phaser.Scene {
         });
     }
     preload() {
-        this.load.atlas('mario-sprites', 'assets/mario-sprites.png', 'assets/mario-sprites.json');
+        this.load.setBaseURL('http://labs.phaser.io');
+        this.load.image('sky', 'assets/skies/space3.png');
+        this.load.image('logo', 'assets/sprites/phaser3-logo.png');
+        this.load.image('red', 'assets/particles/red.png');
     }
     create() {
-        let config = {
-            key: 'title',
-            frames: [{
-                frame: 'title',
-                key: 'mario-sprites'
-            }]
-        };
-        this.anims.create(config);
+        console.log('title create');
+        this.add.image(400, 300, 'sky');
 
-        this.title = this.add.sprite(this.sys.game.config.width / 2, 16 * 5);
-        this.title.play('title');
-        this.attractMode = this.scene.launch('GameScene');
-        console.log(this.attractMode.stop);
+        const particles = this.add.particles('red');
 
-        this.scene.bringToTop();
+        const emitter = particles.createEmitter({
+            speed: 100,
+            scale: { start: 1, end: 0 },
+            blendMode: 'ADD'
+        });
 
-        this.registry.set('restartScene', false);
-        this.registry.set('attractMode', true);
+        const logo = this.physics.add.image(400, 100, 'logo');
 
-        let sh = window.screen.availHeight;
-        let sw = window.screen.availWidth;
-        let ch = 0;
-        let cw = 0;
-        let multiplier = 1;
-        if (sh / sw > 0.6) {
-            // Portrait, fit width
-            multiplier = sw / 400;
-        } else {
-            multiplier = sh / 240;
-        }
-        multiplier = Math.floor(multiplier);
-        let el = document.getElementsByTagName('canvas')[0];
-        el.style.width = 400 * multiplier + 'px';
-        el.style.height = 240 * multiplier + 'px';
- 
+        logo.setVelocity(100, 200);
+        logo.setBounce(1, 1);
+        logo.setCollideWorldBounds(true);
 
-        this.pressX = this.add.bitmapText(16 * 8 + 4, 8 * 16, 'font', 'PRESS X TO START', 8);
-        this.blink = 1000;
-
-        this.startKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.X);
-
-        this.input.on('pointerdown', function (pointer) {
-            this.startGame();
-        }, this);
-    }
-
-    update(time, delta) {
-        if (this.registry.get('restartScene')) {
-            this.restartScene();
-        }
-        this.blink -= delta;
-        if (this.blink < 0) {
-            this.pressX.alpha = this.pressX.alpha === 1 ? 0 : 1;
-            this.blink = 500;
-        }
-
-        if (!this.registry.get('attractMode')) {}
-        if (this.startKey.isDown) {
-            this.startGame();
-        }
-    }
-
-    startGame() {
-        this.scene.stop('GameScene');
-        this.registry.set('attractMode', false);
-        this.scene.start('GameScene');
-    }
-
-    restartScene() {
-        //        this.attractMode.stop();
-        this.scene.stop('GameScene');
-        this.scene.launch('GameScene');
-        this.scene.bringToTop();
-
-        this.registry.set('restartScene', false);
-
+        emitter.startFollow(logo);
     }
 }
 
